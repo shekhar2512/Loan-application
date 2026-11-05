@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import ProgressBar from './ProgressBar';
 import StepNavigation from './StepNavigation';
+import Step1LoanType from '../steps/Step1LoanType';
+import Step2PersonalInfo from '../steps/Step2PersonalInfo';
+import { calculateAge } from '../../schemas/step2Schema';
 import { 
   CreditCard, 
   User, 
@@ -82,17 +85,70 @@ const STEPS_REGISTRY = [
 export default function Wizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [toastMessage, setToastMessage] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Global accumulated form state
+  const [formData, setFormData] = useState({
+    step1: {
+      loanType: 'Personal',
+      loanAmount: 300000,
+      loanTenure: '36',
+      loanPurpose: 'debt_consolidation',
+      referralCode: '',
+    },
+    step2: {},
+  });
+
+  // Ref to trigger current step form validation
+  const currentStepRef = useRef(null);
 
   const totalSteps = STEPS_REGISTRY.length;
   const activeStep = STEPS_REGISTRY[currentStep - 1];
   const StepIcon = activeStep.icon;
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep((prev) => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Cross-step dependency #7: Calculate max allowable tenure from applicant age
+  const applicantAge = formData.step2?.dateOfBirth
+    ? calculateAge(formData.step2.dateOfBirth)
+    : null;
+  const maxAllowedTenureMonths =
+    applicantAge && applicantAge >= 21 ? Math.max(12, (65 - applicantAge) * 12) : null;
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const updateStepData = (stepKey, stepData) => {
+    setFormData((prev) => ({
+      ...prev,
+      [stepKey]: { ...prev[stepKey], ...stepData },
+    }));
+  };
+
+  const handleNext = async () => {
+    // If the step component has validation, trigger it before advancing
+    if (currentStepRef.current?.submitForm) {
+      try {
+        setIsSubmitting(true);
+        await currentStepRef.current.submitForm();
+        setIsSubmitting(false);
+
+        if (currentStep < totalSteps) {
+          setCurrentStep((prev) => prev + 1);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } catch {
+        setIsSubmitting(false);
+        showToast('Please correct the highlighted validation errors.');
+      }
     } else {
-      showToast('Application submission simulation triggered!');
+      // For placeholder steps (Steps 3-8)
+      if (currentStep < totalSteps) {
+        setCurrentStep((prev) => prev + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        showToast('Application submission simulation complete!');
+      }
     }
   };
 
@@ -105,11 +161,6 @@ export default function Wizard() {
 
   const handleStepClick = (stepNumber) => {
     setCurrentStep(stepNumber);
-  };
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const handleSaveDraft = () => {
@@ -155,20 +206,38 @@ export default function Wizard() {
           </div>
         </div>
 
-        {/* Active Step Content Placeholder */}
-        <div className="min-h-[220px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
-          <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1F4E79] flex items-center justify-center mb-3 font-bold text-sm">
-            {activeStep.number}
-          </div>
-          <h3 className="text-base font-semibold text-slate-800 mb-1">
-            {activeStep.title} Form Body
-          </h3>
-          <p className="text-sm text-slate-500 max-w-md">
-            This step container will hold our custom inputs and Zod validation rules.
-          </p>
-          <span className="mt-4 px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">
-            Day 1 Architecture Skeleton
-          </span>
+        {/* Step Body Rendering */}
+        <div className="min-h-[280px]">
+          {currentStep === 1 && (
+            <Step1LoanType
+              ref={currentStepRef}
+              defaultValues={formData.step1}
+              onSave={(data) => updateStepData('step1', data)}
+              maxAllowedTenureMonths={maxAllowedTenureMonths}
+            />
+          )}
+
+          {currentStep === 2 && (
+            <Step2PersonalInfo
+              ref={currentStepRef}
+              defaultValues={formData.step2}
+              onSave={(data) => updateStepData('step2', data)}
+            />
+          )}
+
+          {currentStep > 2 && (
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1F4E79] flex items-center justify-center mb-3 font-bold text-sm">
+                {activeStep.number}
+              </div>
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                {activeStep.title}
+              </h3>
+              <p className="text-sm text-slate-500 max-w-md">
+                This step will be unlocked on subsequent days of the roadmap.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Bottom Navigation */}
@@ -178,6 +247,7 @@ export default function Wizard() {
           onPrevious={handlePrevious}
           onNext={handleNext}
           onSaveDraft={handleSaveDraft}
+          isSubmitting={isSubmitting}
         />
       </div>
     </div>
