@@ -3,6 +3,7 @@ import ProgressBar from './ProgressBar';
 import StepNavigation from './StepNavigation';
 import Step1LoanType from '../steps/Step1LoanType';
 import Step2PersonalInfo from '../steps/Step2PersonalInfo';
+import Step3KYC from '../steps/Step3KYC';
 import { calculateAge } from '../../schemas/step2Schema';
 import { 
   CreditCard, 
@@ -97,6 +98,7 @@ export default function Wizard() {
       referralCode: '',
     },
     step2: {},
+    step3: {},
   });
 
   // Ref to trigger current step form validation
@@ -225,8 +227,21 @@ export default function Wizard() {
             />
           )}
 
-          {currentStep > 2 && (
+           {currentStep === 3 && (
+            <Step3KYC
+              ref={currentStepRef}
+              defaultValues={formData.step3}
+              onSave={(data) => updateStepData('step3', data)}
+              loanType={formData.step1?.loanType}
+              loanAmount={formData.step1?.loanAmount}
+            />
+          )}
+
+
+
+          {currentStep > 3 && (
             <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+
               <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1F4E79] flex items-center justify-center mb-3 font-bold text-sm">
                 {activeStep.number}
               </div>
