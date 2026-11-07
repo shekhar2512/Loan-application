@@ -4,6 +4,7 @@ import StepNavigation from './StepNavigation';
 import Step1LoanType from '../steps/Step1LoanType';
 import Step2PersonalInfo from '../steps/Step2PersonalInfo';
 import Step3KYC from '../steps/Step3KYC';
+import Step4Address from '../steps/Step4Address';
 import { calculateAge } from '../../schemas/step2Schema';
 import { 
   CreditCard, 
@@ -99,6 +100,7 @@ export default function Wizard() {
     },
     step2: {},
     step3: {},
+    step4: {},
   });
 
   // Ref to trigger current step form validation
@@ -254,6 +256,27 @@ export default function Wizard() {
             </div>
           )}
         </div>
+
+        {currentStep === 4 && (
+            <Step4Address
+              ref={currentStepRef}
+              defaultValues={formData.step4}
+              onSave={(data) => updateStepData('step4', data)}
+            />
+          )}
+          {currentStep > 4 && (
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1F4E79] flex items-center justify-center mb-3 font-bold text-sm">
+                {activeStep.number}
+              </div>
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                {activeStep.title}
+              </h3>
+              <p className="text-sm text-slate-500 max-w-md">
+                This step will be unlocked on subsequent days of the roadmap.
+              </p>
+            </div>
+          )}
 
         {/* Bottom Navigation */}
         <StepNavigation
