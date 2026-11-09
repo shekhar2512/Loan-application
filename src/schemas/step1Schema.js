@@ -100,7 +100,7 @@ export function createStep1Schema(maxAllowedMonths = null) {
       loanType: z.enum(['Personal', 'Home', 'Business'], {
         required_error: 'Please select a loan type.',
       }),
-      loanAmount: z
+      loanAmount: z.coerce
         .number({ invalid_type_error: 'Loan amount is required.' })
         .min(50000, 'Minimum loan amount is ₹50,000.'),
       loanTenure: z

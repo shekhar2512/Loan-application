@@ -42,8 +42,8 @@ const CurrencyInput = forwardRef(function CurrencyInput(
 
     if (onChange) {
       // Pass clean numeric value to React Hook Form / Zod
-      e.target.value = rawVal ? Number(rawVal) : '';
-      onChange(e);
+      const numericVal = rawVal ? Number(rawVal) : '';
+      onChange(numericVal);
     }
   };
 
