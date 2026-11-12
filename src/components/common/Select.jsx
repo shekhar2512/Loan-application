@@ -9,6 +9,8 @@ const Select = forwardRef(function Select(
     label,
     options = [],
     placeholder = 'Select an option',
+    value,
+    defaultValue,
     error,
     helpText,
     required = false,
@@ -51,7 +53,8 @@ const Select = forwardRef(function Select(
           required={required}
           aria-invalid={!!error}
           aria-describedby={describedBy}
-          defaultValue=""
+          value={value}
+          defaultValue={value === undefined ? (defaultValue || '') : undefined}
           className={`w-full min-h-[44px] pl-3.5 pr-10 py-2.5 rounded-lg border text-sm text-slate-900 bg-white appearance-none transition-all focus:outline-none cursor-pointer ${
             error
               ? 'border-[#E74C3C] focus:ring-2 focus:ring-[#E74C3C]/20 focus:border-[#E74C3C]'
