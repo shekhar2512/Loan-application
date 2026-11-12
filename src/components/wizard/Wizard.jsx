@@ -7,6 +7,7 @@ import Step3KYC from '../steps/Step3KYC';
 import Step4Address from '../steps/Step4Address';
 import Step5Employment from '../steps/Step5Employment';
 import Step6CoApplicant from '../steps/Step6CoApplicant';
+import Step7Documents from '../steps/Step7Documents';
 import { calculateAge } from '../../schemas/step2Schema';
 import { useAutoSave } from '../../hooks/useAutoSave';
 import { 
@@ -110,6 +111,7 @@ export default function Wizard() {
     step4: {},
     step5: {},
     step6: {},
+    step7: {},
   });
 
   // Ref to trigger current step form validation
@@ -372,6 +374,29 @@ export default function Wizard() {
             </div>
           )}
         </div>
+
+        {currentStep === 7 && (
+            <Step7Documents
+              ref={currentStepRef}
+              defaultValues={formData.step7}
+              onSave={(data) => updateStepData('step7', data)}
+              isPanVerified={formData.step3?.isPanVerified}
+              employmentType={formData.step5?.employmentType}
+            />
+          )}
+          {currentStep > 7 && (
+            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-[#1F4E79] flex items-center justify-center mb-3 font-bold text-sm">
+                {activeStep.number}
+              </div>
+              <h3 className="text-base font-semibold text-slate-800 mb-1">
+                {activeStep.title}
+              </h3>
+              <p className="text-sm text-slate-500 max-w-md">
+                This step will be unlocked on subsequent days of the roadmap.
+              </p>
+            </div>
+          )}
 
         {/* Bottom Navigation */}
         <StepNavigation
