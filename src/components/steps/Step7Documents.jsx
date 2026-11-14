@@ -51,7 +51,7 @@ const Step7Documents = forwardRef(function Step7Documents(
 
   const handleSignatureEnd = () => {
     if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
-      const dataUrl = sigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
+      const dataUrl = sigCanvasRef.current.getCanvas().toDataURL('image/png');
       setValue('signature', dataUrl, { shouldValidate: true });
     }
   };
@@ -68,7 +68,7 @@ const Step7Documents = forwardRef(function Step7Documents(
       new Promise((resolve, reject) => {
         // Ensure signature is captured before submitting
         if (sigCanvasRef.current && !sigCanvasRef.current.isEmpty()) {
-          const dataUrl = sigCanvasRef.current.getTrimmedCanvas().toDataURL('image/png');
+          const dataUrl = sigCanvasRef.current.getCanvas().toDataURL('image/png');
           setValue('signature', dataUrl);
         }
 
