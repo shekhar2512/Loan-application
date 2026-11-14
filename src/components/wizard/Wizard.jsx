@@ -11,6 +11,7 @@ import Step7Documents from '../steps/Step7Documents';
 import Step8Review from '../steps/Step8Review';
 import { calculateAge } from '../../schemas/step2Schema';
 import { useAutoSave } from '../../hooks/useAutoSave';
+import { validateFullApplication } from '../../schemas/schemaFactory';
 import { 
   CreditCard, 
   User, 
@@ -92,6 +93,12 @@ const STEPS_REGISTRY = [
   },
 ];
 
+
+// Expose for Cypress automated cross-step test validation
+if (typeof window !== 'undefined') {
+  window.__validateFullApplication = validateFullApplication;
+}
+
 export default function Wizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [toastMessage, setToastMessage] = useState(null);
@@ -153,10 +160,23 @@ export default function Wizard() {
   };
 
   const updateStepData = (stepKey, stepData) => {
-    setFormData((prev) => ({
-      ...prev,
-      [stepKey]: { ...prev[stepKey], ...stepData },
-    }));
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [stepKey]: { ...prev[stepKey], ...stepData },
+      };
+
+      // Cross-step reactive reconciliation:
+      // If Step 1 changed and loan is no longer Home > 30L, release mandatory Co-Applicant constraint
+      if (stepKey === 'step1') {
+        const isHomeOver30L = updated.step1?.loanType === 'Home' && Number(updated.step1?.loanAmount) > 3000000;
+        if (!isHomeOver30L && prev.step6?.hasCoApplicant === true && !prev.step6?.fullName) {
+          updated.step6 = { ...updated.step6, hasCoApplicant: false };
+        }
+      }
+
+      return updated;
+    });
   };
 
   const handleNext = async () => {
